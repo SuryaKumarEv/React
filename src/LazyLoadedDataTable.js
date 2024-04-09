@@ -1,7 +1,8 @@
-import React from 'react'
-import { DataTable } from 'primereact/datatable'
-import { Column } from 'primereact/column'
-import { InputText } from 'primereact/inputtext'
+import React from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { InputText } from 'primereact/inputtext';
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 const LazyLoadedDataTable = ({
   students,
@@ -27,32 +28,35 @@ const LazyLoadedDataTable = ({
           </div>
         </span>
       </div>
-    )
-  }
+    );
+  };
 
-  const header = renderHeader()
+  const header = renderHeader();
+
+  if (loading) {
+    return (
+      <div className="spinner-container">
+        <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="App">
       <DataTable
-        pt={{
-          root: {
-            style: { height: '900px' },
-          },
-        }}
         value={students}
         sortField="name"
         sortMode="multiple"
         filters={filters}
         paginator
         rows={20}
-        rowsPerPageOptions={[2, 5, 10, 15, 20, 25, 50, 100, 200, 2000]}
+        rowsPerPageOptions={[3, 5, 10, 20, 30]}
         totalRecords={students.length}
         dataKey="id"
         filterDisplay="row"
         loading={loading}
-        globalFilterFields={['name', 'address', 'id', 'phoneNo']}
-        emptyMessage="No users found."
+        globalFilter={globalFilterValue}
+        emptyMessage="No students found."
         header={header}
       >
         <Column
@@ -66,7 +70,7 @@ const LazyLoadedDataTable = ({
           field="address"
           header="Address"
           filter
-          filterPlaceholder="Search by email"
+          filterPlaceholder="Search by address"
           sortable
         />
         <Column
@@ -78,7 +82,7 @@ const LazyLoadedDataTable = ({
         />
       </DataTable>
     </div>
-  )
-}
+  );
+};
 
-export default LazyLoadedDataTable
+export default LazyLoadedDataTable;
