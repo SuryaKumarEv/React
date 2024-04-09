@@ -49,8 +49,8 @@ const LazyLoadedDataTable = ({
         sortMode="multiple"
         filters={filters}
         paginator
-        rows={20}
-        rowsPerPageOptions={[3, 5, 10, 20, 30]}
+        rows={15}
+        rowsPerPageOptions={[3, 5, 10, 15, 20, 30]}
         totalRecords={students.length}
         dataKey="id"
         filterDisplay="row"
