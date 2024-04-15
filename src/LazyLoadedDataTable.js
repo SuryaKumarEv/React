@@ -48,9 +48,7 @@ const LazyLoadedDataTable = ({
         sortField="name"
         sortMode="multiple"
         filters={filters}
-        paginator
         rows={15}
-        rowsPerPageOptions={[3, 5, 10, 15, 20, 30]}
         totalRecords={students.length}
         dataKey="id"
         filterDisplay="row"
@@ -58,6 +56,7 @@ const LazyLoadedDataTable = ({
         globalFilter={globalFilterValue}
         emptyMessage="No students found."
         header={header}
+        
       >
         <Column
           field="name"
