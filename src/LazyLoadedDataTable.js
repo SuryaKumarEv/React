@@ -10,6 +10,9 @@ const LazyLoadedDataTable = ({
   globalFilterValue,
   onGlobalFilterChange,
   loading,
+  sortField,
+  sortOrder,
+  onSortChange,
 }) => {
   const renderHeader = () => {
     return (
@@ -45,8 +48,10 @@ const LazyLoadedDataTable = ({
     <div className="App">
       <DataTable
         value={students}
-        sortField="name"
-        sortMode="multiple"
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSort={onSortChange}
+        sortMode="single"
         filters={filters}
         rows={15}
         totalRecords={students.length}
@@ -56,7 +61,6 @@ const LazyLoadedDataTable = ({
         globalFilter={globalFilterValue}
         emptyMessage="No students found."
         header={header}
-        
       >
         <Column
           field="name"

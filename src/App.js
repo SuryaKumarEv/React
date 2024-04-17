@@ -1,35 +1,38 @@
-import React, { useEffect, useState, Suspense, lazy, useCallback } from 'react'
-import 'primereact/resources/themes/lara-light-indigo/theme.css'
-import 'primereact/resources/primereact.min.css'
-import { FilterMatchMode } from 'primereact/api'
-import { InputText } from 'primereact/inputtext'
-import { ProgressSpinner } from 'primereact/progressspinner'
+import React, { useEffect, useState, Suspense, lazy, useCallback } from 'react';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';
+import 'primereact/resources/primereact.min.css';
+import { FilterMatchMode } from 'primereact/api';
+import { InputText } from 'primereact/inputtext';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import { Paginator } from 'primereact/paginator';
 
-const LazyLoadedDataTable = lazy(() => import('./LazyLoadedDataTable'))
+const LazyLoadedDataTable = lazy(() => import('./LazyLoadedDataTable'));
 
 function App() {
-  const [students, setStudents] = useState([])
-  const [globalFilterValue, setGlobalFilterValue] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(10)
+  const [students, setStudents] = useState([]);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [loading, setLoading] = useState(true);
+  // const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState({
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     address: { value: null, matchMode: FilterMatchMode.CONTAINS },
     phoneNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  })
+  });
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
   const [totalRecord, setTotalRecord] = useState();
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
+
   const fetchStudents = useCallback(async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const body = {
-        page: (first/10)+1,
+        page: (first / 10) + 1,
         pageSize: rows,
-        filter: '',
-        order: '',
-      }
+        filter: globalFilterValue,
+        order: sortField && sortOrder ? `${sortField},${sortOrder === 1 ? 'asc' : 'desc'}` : '',
+      };
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -37,63 +40,56 @@ function App() {
           'Cache-Control': 'no-store',
         },
         body: JSON.stringify(body),
-      }
+      };
       const response = await fetch(
         `https://localhost:7270/api/Student/GetAllStudentsData`,
         requestOptions
-      )
-      //fetch(`https://localhost:7270/api/Student/GetAllStudentsData?page=1&pageSize=${pageSize}`);
+      );
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        throw new Error('Network response was not ok');
       }
-      const data = await response.json()
-      setStudents(data.students)
-      setTotalRecord(data.totalRecords)
+      const data = await response.json();
+      setStudents(data.students);
+      setTotalRecord(data.totalRecords);
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error('Error fetching data:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [first, rows])
-
-  useEffect(()=>{
-    console.log("first",first, "rows", rows,"toatl ",totalRecord);
-  },[first,rows])
-
-  const onPageChange = (event) => {
-        setFirst(event.first);
-        setRows(event.rows);
-    };
+  }, [first, rows, globalFilterValue, sortField, sortOrder]);
 
   useEffect(() => {
     const fetchStudentsData = async () => {
-      await fetchStudents()
-    }
+      await fetchStudents();
+    };
 
-    fetchStudentsData()
-  }, [fetchStudents])
+    fetchStudentsData();
+  }, [fetchStudents]);
+
+  const onPageChange = (event) => {
+    setFirst(event.first);
+    setRows(event.rows);
+  };
 
   const onGlobalFilterChange = (e) => {
-    const { value } = e.target
-    setGlobalFilterValue(value)
-    applyGlobalFilter(value)
-  }
+    const { value } = e.target;
+    setGlobalFilterValue(value);
+    applyGlobalFilter(value);
+  };
 
   const applyGlobalFilter = (value) => {
     let _filters = {
       name: { value: value, matchMode: FilterMatchMode.CONTAINS },
       address: { value: value, matchMode: FilterMatchMode.CONTAINS },
       phoneNo: { value: value, matchMode: FilterMatchMode.CONTAINS },
-    }
-    setFilters(_filters)
-  }
+    };
+    setFilters(_filters);
+  };
 
-  const handlePageSizeChange = (e) => {
-    console.log(e)
-    const newSize = parseInt(e.target.value, 10)
-    console.log(newSize, 'new size')
-    setPageSize(newSize)
-  }
+  const handleSortChange = (e) => {
+    setSortField(e.sortField);
+    setSortOrder(e.sortOrder);
+  };
 
   const renderHeader = () => {
     return (
@@ -112,10 +108,10 @@ function App() {
           </div>
         </span>
       </div>
-    )
-  }
+    );
+  };
 
-  const header = renderHeader()
+  const header = renderHeader();
 
   return (
     <div className="App">
@@ -133,13 +129,22 @@ function App() {
           onGlobalFilterChange={onGlobalFilterChange}
           loading={loading}
           header={header}
+          sortField={sortField}
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
         />
         <div className="card">
-            <Paginator first={first} rows={rows} totalRecords={totalRecord} rowsPerPageOptions={[5, 10, 20, 30]} onPageChange={onPageChange} />
+          <Paginator
+            first={first}
+            rows={rows}
+            totalRecords={totalRecord}
+            rowsPerPageOptions={[10, 20, 30]}
+            onPageChange={onPageChange}
+          />
         </div>
       </Suspense>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
