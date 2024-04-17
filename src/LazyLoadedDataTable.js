@@ -10,6 +10,9 @@ const LazyLoadedDataTable = ({
   globalFilterValue,
   onGlobalFilterChange,
   loading,
+  sortField,
+  sortOrder,
+  onSortChange,
 }) => {
   const renderHeader = () => {
     return (
@@ -45,12 +48,12 @@ const LazyLoadedDataTable = ({
     <div className="App">
       <DataTable
         value={students}
-        sortField="name"
-        sortMode="multiple"
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSort={onSortChange}
+        sortMode="single"
         filters={filters}
-        paginator
-        rows={20}
-        rowsPerPageOptions={[3, 5, 10, 20, 30]}
+        rows={15}
         totalRecords={students.length}
         dataKey="id"
         filterDisplay="row"
@@ -86,3 +89,4 @@ const LazyLoadedDataTable = ({
 };
 
 export default LazyLoadedDataTable;
+
