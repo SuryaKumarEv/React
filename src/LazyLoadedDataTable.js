@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { InputText } from 'primereact/inputtext'
 import { Paginator } from 'primereact/paginator'
+import { Dropdown } from 'primereact/dropdown'
 
 const LazyLoadedDataTable = ({
   students,
@@ -19,10 +20,13 @@ const LazyLoadedDataTable = ({
   totalRecords,
   rowsPerPageOptions,
   onPageChange,
+  filterMatchModeOptions,
 }) => {
   const [nameLoading, setNameLoading] = useState(false)
   const [addressLoading, setAddressLoading] = useState(false)
   const [phoneLoading, setPhoneLoading] = useState(false)
+
+  useEffect(() => {}, [students])
 
   const onFilterInputChange = async (columnName, value) => {
     switch (columnName) {
@@ -39,7 +43,7 @@ const LazyLoadedDataTable = ({
         break
     }
 
-    await onColumnFilterChange(columnName, value)
+    await onColumnFilterChange(columnName, value, filters[columnName].matchMode)
 
     switch (columnName) {
       case 'name':
@@ -59,12 +63,16 @@ const LazyLoadedDataTable = ({
   return (
     <div className="App">
       <DataTable
+        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
         value={students}
         sortField={sortField}
         sortOrder={sortOrder}
         onSort={onSortChange}
         sortMode="single"
         filters={filters}
+        removableSort
+        stripedRows
+        showGridlines
         rows={15}
         totalRecords={students.length}
         dataKey="id"
@@ -79,14 +87,28 @@ const LazyLoadedDataTable = ({
           filter
           filterPlaceholder="Search by name"
           filterElement={() => (
-            <InputText
-              type="text"
-              className="filter-input"
-              placeholder="Search by name"
-              onChange={(e) => onFilterInputChange('name', e.target.value)}
-            />
+            <div className="p-inputgroup">
+              <InputText
+                type="text"
+                className="filter-input"
+                placeholder="Search by name"
+                onChange={(e) => onFilterInputChange('name', e.target.value)}
+              />
+              <Dropdown
+                value={filters.name.matchMode}
+                options={filterMatchModeOptions}
+                onChange={(e) =>
+                  onColumnFilterChange(
+                    'name',
+                    filters.name.value,
+                    e.target.value
+                  )
+                }
+              />
+            </div>
           )}
           loading={nameLoading}
+          matchMode={filters.name.matchMode}
         />
         <Column
           field="address"
@@ -95,14 +117,28 @@ const LazyLoadedDataTable = ({
           filter
           filterPlaceholder="Search by address"
           filterElement={() => (
-            <InputText
-              type="text"
-              className="filter-input"
-              placeholder="Search by address"
-              onChange={(e) => onFilterInputChange('address', e.target.value)}
-            />
+            <div className="p-inputgroup">
+              <InputText
+                type="text"
+                className="filter-input"
+                placeholder="Search by address"
+                onChange={(e) => onFilterInputChange('address', e.target.value)}
+              />
+              <Dropdown
+                value={filters.address.matchMode}
+                options={filterMatchModeOptions}
+                onChange={(e) =>
+                  onColumnFilterChange(
+                    'address',
+                    filters.address.value,
+                    e.target.value
+                  )
+                }
+              />
+            </div>
           )}
           loading={addressLoading}
+          matchMode={filters.address.matchMode}
         />
         <Column
           field="phoneNo"
@@ -111,14 +147,28 @@ const LazyLoadedDataTable = ({
           filter
           filterPlaceholder="Search by phone"
           filterElement={() => (
-            <InputText
-              type="text"
-              className="filter-input"
-              placeholder="Search by phone"
-              onChange={(e) => onFilterInputChange('phoneNo', e.target.value)}
-            />
+            <div className="p-inputgroup">
+              <InputText
+                type="text"
+                className="filter-input"
+                placeholder="Search by phone"
+                onChange={(e) => onFilterInputChange('phoneNo', e.target.value)}
+              />
+              <Dropdown
+                value={filters.phoneNo.matchMode}
+                options={filterMatchModeOptions}
+                onChange={(e) =>
+                  onColumnFilterChange(
+                    'phoneNo',
+                    filters.phoneNo.value,
+                    e.target.value
+                  )
+                }
+              />
+            </div>
           )}
           loading={phoneLoading}
+          matchMode={filters.phoneNo.matchMode}
         />
       </DataTable>
       {loading && (
@@ -136,13 +186,15 @@ const LazyLoadedDataTable = ({
           left: '0',
         }}
       >
-        <Paginator
-          first={first}
-          rows={rows}
-          totalRecords={totalRecords}
-          rowsPerPageOptions={rowsPerPageOptions}
-          onPageChange={onPageChange}
-        />
+        {totalRecords !== null || totalRecords >= 0 ? (
+          <Paginator
+            first={first}
+            rows={rows}
+            totalRecords={totalRecords}
+            rowsPerPageOptions={rowsPerPageOptions}
+            onPageChange={onPageChange}
+          />
+        ) : null}
       </div>
     </div>
   )

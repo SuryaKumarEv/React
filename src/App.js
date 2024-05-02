@@ -1,10 +1,8 @@
 import React, { useEffect, useState, Suspense, lazy, useCallback } from 'react'
 import 'primereact/resources/themes/lara-light-indigo/theme.css'
 import 'primereact/resources/primereact.min.css'
-import { FilterMatchMode } from 'primereact/api'
 import { InputText } from 'primereact/inputtext'
 import { ProgressSpinner } from 'primereact/progressspinner'
-// import { Paginator } from 'primereact/paginator'
 
 const LazyLoadedDataTable = lazy(() => import('./LazyLoadedDataTable'))
 
@@ -13,15 +11,23 @@ function App() {
   const [globalFilterValue, setGlobalFilterValue] = useState('')
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    address: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    phoneNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: '' },
+    address: { value: null, matchMode: '' },
+    phoneNo: { value: null, matchMode: '' },
   })
   const [first, setFirst] = useState(0)
   const [rows, setRows] = useState(10)
   const [totalRecord, setTotalRecord] = useState()
-  const [sortField, setSortField] = useState(null)
-  const [sortOrder, setSortOrder] = useState(null)
+  const [sortBy, setSortBy] = useState([])
+
+  const filterMatchModeOptions = [
+    { label: 'Contains', value: 'contains' },
+    { label: 'Starts with', value: 'startswith' },
+    { label: 'Ends with', value: 'endswith' },
+    { label: 'Equals', value: 'equals' },
+    { label: 'Not equals', value: 'notequals' },
+    { label: 'No Filter', value: '' },
+  ]
 
   const fetchStudents = useCallback(async () => {
     try {
@@ -37,17 +43,18 @@ function App() {
         pageNumber: first / 10 + 1,
         pageSize: rows,
         globalfilter: globalFilterValue,
-        orderBy:
-          sortField && sortOrder
-            ? `${sortField},${sortOrder === 1 ? 'asc' : 'desc'}`
-            : '',
-
+        sortBy: sortBy,
         columnFilters: Object.keys(columnFilters).join(','),
         searchItem:
           filters.name.value ||
           filters.address.value ||
           filters.phoneNo.value ||
           null,
+        matchMode:
+          filters.name.matchMode ||
+          filters.address.matchMode ||
+          filters.phoneNo.matchMode ||
+          '',
       }
       const requestOptions = {
         method: 'POST',
@@ -72,7 +79,7 @@ function App() {
     } finally {
       setLoading(false)
     }
-  }, [first, rows, globalFilterValue, sortField, sortOrder, filters])
+  }, [first, rows, globalFilterValue, sortBy, filters])
 
   useEffect(() => {
     const fetchStudentsData = async () => {
@@ -93,17 +100,30 @@ function App() {
   }
 
   const handleSortChange = (e) => {
-    setSortField(e.sortField)
-    setSortOrder(e.sortOrder)
+    console.log('Sorting criteria:', e)
+    const { sortField, sortOrder } = e
+    if (sortField && sortOrder) {
+      const existingSortIndex = sortBy.findIndex(
+        (item) => item.field === sortField
+      )
+      if (existingSortIndex !== -1) {
+        const updatedSortBy = [...sortBy]
+        updatedSortBy[existingSortIndex].order =
+          -sortBy[existingSortIndex].order
+        setSortBy(updatedSortBy)
+      } else {
+        setSortBy([...sortBy, { field: sortField, order: sortOrder }])
+      }
+    }
   }
 
-  const handleColumnFilterChange = (columnName, value) => {
+  const handleColumnFilterChange = (columnName, value, matchMode) => {
     const updatedFilters = {
       ...filters,
-      [columnName]: { value: value, matchMode: FilterMatchMode.CONTAINS },
+      [columnName]: { value: value, matchMode: matchMode },
     }
     setFilters(updatedFilters)
-
+    // Fetch data with updated filters
     fetchStudents()
   }
 
@@ -167,8 +187,8 @@ function App() {
           globalFilterValue={globalFilterValue}
           onGlobalFilterChange={onGlobalFilterChange}
           loading={loading}
-          sortField={sortField}
-          sortOrder={sortOrder}
+          sortField={sortBy[0]?.field}
+          sortOrder={sortBy[0]?.order}
           onSortChange={handleSortChange}
           onColumnFilterChange={handleColumnFilterChange}
           first={first}
@@ -176,6 +196,7 @@ function App() {
           totalRecords={totalRecord}
           rowsPerPageOptions={[10, 20, 30]}
           onPageChange={onPageChange}
+          filterMatchModeOptions={filterMatchModeOptions}
         />
       </Suspense>
     </div>
